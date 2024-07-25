@@ -5,5 +5,5 @@ Resources:
   S3Bucket:
     Type: AWS::S3::Bucket    
     Properties:
-      BucketName: vamsi-bucket-32472      
+      BucketName: m5-bucket-32472      
       AccessControl: PublicRead
