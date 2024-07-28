@@ -1,58 +1,49 @@
----
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Creates a VPC, subnet, IGW, security group, and EC2 instance with Apache
+Description: Creates two EC2 instances and an S3 bucket
 
 Resources:
-  mywebVPC:
-    Type: AWS::EC2::VPC
+  WebServer:
+    Type: AWS::EC2::Instance
     Properties:
-      CidrBlock: 10.0.0.0/16
+      ImageId: "ami-074be47313f84fa38"  # Replace with the correct AMI for your region
+      InstanceType: t2.micro
+      KeyName: OregonKP  # Replace with your key pair name
+      SecurityGroups:
+        - Ref: MySecurityGroup
+      BlockDeviceMappings:
+        -
+          DeviceName: /dev/xvda
+          Ebs:
+            VolumeType: gp2
+            DeleteOnTermination: true
+            VolumeSize: 8
       Tags:
         - Key: Name
-          Value: mywebVPC
+          Value: WebServer
 
-  publicSubnet:
-    Type: AWS::EC2::Subnet
+  AppServer:
+    Type: AWS::EC2::Instance
     Properties:
-      CidrBlock: 10.0.1.0/24
-      VpcId: !Ref mywebVPC
-      AvailabilityZone: us-west-2c
+      ImageId: "ami-074be47313f84fa38"  # Replace with the correct AMI for your region
+      InstanceType: t2.micro
+      KeyName: OregonKP  # Replace with your key pair name
+      SecurityGroups:
+        - Ref: MySecurityGroup
+      BlockDeviceMappings:
+        -
+          DeviceName: /dev/xvda
+          Ebs:
+            VolumeType: gp2
+            DeleteOnTermination: true
+            VolumeSize: 10
       Tags:
         - Key: Name
-          Value: PublicSubnet
+          Value: AppServer
 
-  internetGateway:
-    Type: AWS::EC2::InternetGateway
-
-  attachGateway:
-    Type: AWS::EC2::VPCGatewayAttachment
-    Properties:
-      VpcId: !Ref mywebVPC
-      InternetGatewayId: !Ref internetGateway
-
-  routeTable:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref mywebVPC
-
-  route:
-    Type: AWS::EC2::Route
-    DependsOn: attachGateway
-    Properties:
-      RouteTableId: !Ref routeTable
-      DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref internetGateway
-
-  subnetRouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref publicSubnet
-      RouteTableId: !Ref routeTable
-
-  mywebSG:
+  MySecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Allow HTTP and SSH
+      GroupDescription: Allow SSH and HTTP traffic
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
@@ -63,35 +54,7 @@ Resources:
           ToPort: 80
           CidrIp: 0.0.0.0/0
 
-  SLWebapp1:
-    Type: AWS::EC2::Instance
+  MyS3Bucket:
+    Type: AWS::S3::Bucket
     Properties:
-      ImageId: "ami-074be47313f84fa38"  # Replace with the correct AMI for your region
-      InstanceType: t2.micro
-      KeyName: OregonKP
-      SecurityGroups:
-        - Ref: mywebSG
-      SubnetId: !Ref publicSubnet 
-      UserData:
-        Fn::Base64: !Sub |
-          #!/bin/bash
-          yum update -y
-          yum install httpd -y
-          cat <<EOF > /var/www/html/index.html
-          <html>
-          <head>
-          <style>
-          body {
-              background-color: black;
-              color: yellow;
-          }
-          </style>
-          </head>
-          <body>
-          <h1>Here is my website</h1>
-          </body>
-          </html>
-          EOF
-          systemctl start httpd
-          systemctl enable httpd
-
+      BucketName: my-s3-bucket
