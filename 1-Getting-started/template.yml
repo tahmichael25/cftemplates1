@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: Creates two EC2 instances and an S3 bucket
 
 Resources:
-  WebServer:
+  WebServer:                           # Webserver with 8gb EBS
     Type: AWS::EC2::Instance
     Properties:
       ImageId: "ami-074be47313f84fa38"  # Replace with the correct AMI for your region
@@ -21,7 +21,7 @@ Resources:
         - Key: Name
           Value: WebServer
 
-  AppServer:
+  AppServer:                                # Appserver with 10gb EBS
     Type: AWS::EC2::Instance
     Properties:
       ImageId: "ami-074be47313f84fa38"  # Replace with the correct AMI for your region
@@ -54,7 +54,7 @@ Resources:
           ToPort: 80
           CidrIp: 0.0.0.0/0
 
-  MyS3Bucket:
+  MyS3Bucket:                   # One S3 bucket to store invoice pdf files
     Type: AWS::S3::Bucket
     Properties:
       BucketName: m5-s3-bucket
