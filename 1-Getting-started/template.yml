@@ -1,3 +1,4 @@
+---
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Creates a VPC, subnet, IGW, security group, and EC2 instance with Apache
 
@@ -70,7 +71,7 @@ Resources:
       KeyName: OregonKP
       SecurityGroups:
         - Ref: mywebSG
-      SubnetId: !Ref publicSubnet
+      SubnetId: !Ref publicSubnet 
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
@@ -93,3 +94,4 @@ Resources:
           EOF
           systemctl start httpd
           systemctl enable httpd
+
