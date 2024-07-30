@@ -6,4 +6,4 @@ Resources:
     Type: AWS::S3::Bucket    
     Properties:
       BucketName: m5-bucket-32472     
-      AccessControl: PublicRead
+      AccessControl: PublicRead           #Private

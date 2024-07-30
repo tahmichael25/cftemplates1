@@ -17,6 +17,11 @@ Resources:
             VolumeType: gp2
             DeleteOnTermination: true
             VolumeSize: 8
+          # Ebs:
+          #   VolumeType: "io1"
+          #   Iops: "200"
+          #   DeleteOnTermination: "true"
+          #   VolumeSize: '8'
       Tags:
         - Key: Name
           Value: WebServer
@@ -36,6 +41,11 @@ Resources:
             VolumeType: gp2
             DeleteOnTermination: true
             VolumeSize: 10
+          # Ebs:
+          #   VolumeType: "io1"
+          #   Iops: "200"
+          #   DeleteOnTermination: "true"
+          #   VolumeSize: '10'
       Tags:
         - Key: Name
           Value: AppServer
