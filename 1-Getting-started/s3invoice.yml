@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: 
+AWSTemplateFormatVersion: "2010-09-09"
 Description: "One S3 bucket to store invoice pdf files"
 Resources:
   S3Bucket:
