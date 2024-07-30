@@ -1,8 +1,9 @@
 AWSTemplateFormatVersion: 
 Description: "One S3 bucket to store invoice pdf files"
-Resources: {
-  "Type" : "AWS::S3::Bucket",
-  "Properties" : {
-     BucketName: "s3invoicebucket1"
-  }
-}
+Resources:
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: invoices3bucket
+
+
