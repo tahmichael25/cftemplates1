@@ -5,4 +5,389 @@ Resources:
     Type: 'AWS::S3::Bucket'
     Properties:
       BucketName: invoices3bucket
-      AccessControl: Private
+      AccessControl: Private  #This is the legacy property being used(Outdated).
+
+
+
+# AWSTemplateFormatVersion: "2010-09-09"
+# Description: "One S3 bucket to store invoice pdf files"
+# Resources:
+#   S3Bucket:
+#     Type: 'AWS::S3::Bucket'
+#     Properties:
+#       BucketName: invoices3bucket
+#       BucketPolicy:
+#         Type: AWS::S3::BucketPolicy         #This is the recommended replacement of 'AccessControl:'
+#         Properties:
+#           Bucket: !Ref S3Bucket
+#           PolicyDocument:
+#             Version: '2012-10-17'
+#             Statement:
+#               - Sid: DenyAll 
+
+#                 Effect: Deny
+#                 Principal: "*"
+#                 Action: "*"
+#                 Resource: "*"
+
+
+
+# AWSTemplateFormatVersion: "2010-09-09"
+# Description: "One S3 bucket to store invoice pdf files with permissions for user john"
+# Resources:
+#   S3Bucket:
+#     Type: 'AWS::S3::Bucket'
+#     Properties:
+#       BucketName: invoices3bucket
+#       BucketPolicy:
+#         Type: AWS::S3::BucketPolicy
+#         Properties:
+#           Bucket: !Ref S3Bucket
+#           PolicyDocument:
+#             Version: '2012-10-17'
+#             Statement:
+#               - # Allow full access (rwx) for user john
+#                 Sid: AllowJohnFullAccess
+#                 Effect: Allow
+#                 Principal:
+#                   AWS: "arn:aws:iam::<ACCOUNT_ID>:user/john"  # Replace with john's user ARN
+#                 Action:
+#                   - "s3:GetObject"
+#                   - "s3:PutObject"
+#                   - "s3:ListBucket"
+#                 Resource:
+#                   - "arn:aws:s3:::invoices3bucket"
+#                   - "arn:aws:s3:::invoices3bucket/*"
+#               - # Existing DenyAll policy (optional)
+#                 Sid: DenyAll
+#                 Effect: Deny
+#                 Principal: "*"
+#                 Action: "*"
+#                 Resource: "*"
+
+
+
+# AWSTemplateFormatVersion: "2010-09-09"
+# Description: "One S3 bucket to store invoice pdf files with permissions for John and Mary"
+# Resources:
+#   S3Bucket:
+#     Type: 'AWS::S3::Bucket'
+#     Properties:
+#       BucketName: invoices3bucket
+#       BucketPolicy:
+#         Type: AWS::S3::BucketPolicy
+#         Properties:
+#           Bucket: !Ref S3Bucket
+#           PolicyDocument:
+#             Version: '2012-10-17'
+#             Statement:
+#               - Sid: AllowJohnAndMaryReadWrite   
+
+#                 Effect: Allow
+#                 Principal:
+#                   AWS:
+#                     - "arn:aws:iam::<ACCOUNT_ID>:user/john"  # Replace with John's user ARN
+#                     - "arn:aws:iam::<ACCOUNT_ID>:user/mary"  # Replace with Mary's user ARN
+#                 Action:
+#                   - "s3:GetObject"
+#                   - "s3:PutObject"
+#                 Resource:
+#                   - "arn:aws:s3:::invoices3bucket"
+#                   - "arn:aws:s3:::invoices3bucket/*"
+#               - # Optional: DenyAll policy
+#                 Sid: DenyAll
+#                 Effect: Deny
+#                 Principal: "*"
+#                 Action: "*"
+#                 Resource: "*"
+
+
+# AWSTemplateFormatVersion: "2010-09-09"
+# Description: "One S3 bucket to store invoice pdf files with read permissions for John and Mary"
+# Resources:
+#   S3Bucket:
+#     Type: 'AWS::S3::Bucket'
+#     Properties:
+#       BucketName: invoices3bucket
+#       BucketPolicy:
+#         Type: AWS::S3::BucketPolicy
+#         Properties:
+#           Bucket: !Ref S3Bucket
+#           PolicyDocument:
+#             Version: '2012-10-17'
+#             Statement:
+#               - Sid: AllowJohnAndMaryRead   
+
+#                 Effect: Allow
+#                 Principal:
+#                   AWS:
+#                     - "arn:aws:iam::<ACCOUNT_ID>:user/john"  # Replace with John's user ARN
+#                     - "arn:aws:iam::<ACCOUNT_ID>:user/mary"  # Replace with Mary's user ARN
+#                 Action:
+#                   - "s3:GetObject"
+#                 Resource:
+#                   - "arn:aws:s3:::invoices3bucket/*"
+#               - # Optional: DenyAll policy
+#                 Sid: DenyAll
+#                 Effect: Deny
+#                 Principal: "*"
+#                 Action: "*"
+#                 Resource: "*"
+
+
+
+
+# AWSTemplateFormatVersion: "2010-09-09"
+# Description: "One S3 bucket to store invoice pdf files with write permissions for DevOps group"
+# Resources:
+#   S3Bucket:
+#     Type: 'AWS::S3::Bucket'
+#     Properties:
+#       BucketName: invoices3bucket
+#       BucketPolicy:
+#         Type: AWS::S3::BucketPolicy
+#         Properties:
+#           Bucket: !Ref S3Bucket
+#           PolicyDocument:
+#             Version: '2012-10-17'
+#             Statement:
+#               - Sid: AllowDevOpsWrite   
+
+#                 Effect: Allow
+#                 Principal:
+#                   AWS: "arn:aws:iam::<ACCOUNT_ID>:group/DevOps"  # Replace with DevOps group ARN
+#                 Action:
+#                   - "s3:PutObject"
+#                 Resource:
+#                   - "arn:aws:s3:::invoices3bucket/*"
+#               - Sid: DenyJohnAndMary
+#                 Effect: Deny
+#                 Principal:
+#                   AWS:
+#                     - "arn:aws:iam::<ACCOUNT_ID>:user/john"  # Replace with John's user ARN
+#                     - "arn:aws:iam::<ACCOUNT_ID>:user/mary"  # Replace with Mary's user ARN
+#                 Action:
+#                   - "s3:PutObject"
+#                 Resource:
+#                   - "arn:aws:s3:::invoices3bucket/*"
+#               - # Optional: DenyAll policy
+#                 Sid: DenyAll
+#                 Effect: Deny
+#                 Principal: "*"
+#                 Action: "*"
+#                 Resource: "*"
+
+
+
+
+
+
+# AWSTemplateFormatVersion: "2010-09-09"
+# Description: "One S3 bucket to store invoice pdf files with write permissions for DevOps group and its members John and Mary"
+# Resources:
+#   S3Bucket:
+#     Type: 'AWS::S3::Bucket'
+#     Properties:
+#       BucketName: invoices3bucket
+#       BucketPolicy:
+#         Type: AWS::S3::BucketPolicy
+#         Properties:
+#           Bucket: !Ref S3Bucket
+#           PolicyDocument:
+#             Version: '2012-10-17'
+#             Statement:
+#               - Sid: AllowDevOpsGroupWrite   
+
+#                 Effect: Allow
+#                 Principal:
+#                   AWS:
+#                     - "arn:aws:iam::<ACCOUNT_ID>:group/DevOps"  # Replace with DevOps group ARN
+#                 Action:
+#                   - "s3:PutObject"
+#                 Resource:
+#                   - "arn:aws:s3:::invoices3bucket/*"
+#               - # Optional: DenyAll policy
+#                 Sid: DenyAll
+#                 Effect: Deny
+#                 Principal: "*"
+#                 Action: "*"
+#                 Resource: "*"
+
+
+
+
+
+# AWSTemplateFormatVersion: "2010-09-09"
+# Description: "One S3 bucket to store invoice pdf files with public read access using a bucket policy"
+# Resources:
+#   S3Bucket:
+#     Type: 'AWS::S3::Bucket'
+#     Properties:
+#       BucketName: invoices3bucket
+#       BucketPolicy:
+#         Type: AWS::S3::BucketPolicy
+#         Properties:
+#           Bucket: !Ref S3Bucket
+#           PolicyDocument:
+#             Version: '2012-10-17'
+#             Statement:
+#               - Sid: PublicReadGetObject   
+
+#                 Effect: Allow
+#                 Principal: "*"
+#                 Action:
+#                   - "s3:GetObject"
+#                 Resource:   
+
+#                   - "arn:aws:s3:::invoices3bucket/*"
+
+
+
+
+
+
+
+# AWSTemplateFormatVersion: "2010-09-09"
+# Description: "Creates two S3 buckets with write-only access for everyone"
+# Resources:
+#   InvoicesS3Bucket:
+#     Type: AWS::S3::Bucket
+#     Properties:
+#       BucketName: invoices3bucket
+#       BucketPolicy:
+#         Type: AWS::S3::BucketPolicy
+#         Properties:
+#           Bucket: !Ref InvoicesS3Bucket
+#           PolicyDocument:
+#             Version: '2012-10-17'
+#             Statement:
+#               - Sid: EveryoneWrite
+#                 Effect: Allow
+#                 Principal: "*"
+#                 Action:
+#                   - "s3:PutObject"
+#                 Resource:
+#                   - "arn:aws:s3:::invoices3bucket/*"
+
+#   MoneyS3Bucket:
+#     Type: AWS::S3::Bucket
+#     Properties:
+#       BucketName: moneybucket
+#       BucketPolicy:
+#         Type: AWS::S3::BucketPolicy
+#         Properties:
+#           Bucket: !Ref MoneyS3Bucket
+#           PolicyDocument:
+#             Version: '2012-10-17'
+#             Statement:
+#               - Sid: EveryoneWrite
+#                 Effect: Allow
+#                 Principal: "*"
+#                 Action:
+#                   - "s3:PutObject"
+#                 Resource:
+#                   - "arn:aws:s3:::moneybucket/*"
+
+
+
+
+
+# AWSTemplateFormatVersion: "2010-09-09"
+# Description: "Creates two S3 buckets with write-only access for everyone"
+# Resources:
+#   MyBuckets:
+#     Type: AWS::S3::Bucket
+#     Properties:
+#       BucketName: !Ref BucketNames
+#     DeletionPolicy: Retain
+
+#   BucketNames:
+#     Type: AWS::List::Join
+#     Properties:
+#       Delimiter: ','
+#       Values:
+#         - invoices3bucket
+#         - moneybucket
+
+#   BucketPolicies:
+#     Type: AWS::IAM::Policy
+#     Properties:
+#       PolicyName: MyBucketPolicy
+#       PolicyDocument:
+#         Version: '2012-10-17'
+#         Statement:
+#           - Sid: EveryoneWrite
+#             Effect: Allow
+#             Principal: "*"
+#             Action:
+#               - "s3:PutObject"
+#             Resource:
+#               - !Join
+#                 Fn::Delimiter: "/"
+#                 Fn::Values:
+#                   - "arn:aws:s3:::"
+#                   - !Ref MyBuckets
+
+#===================================================================================================================================================
+# While CloudFormation can create the S3 bucket, granting public read access to specific objects requires post-provisioning actions.
+
+# Why Pre-Signed URLs?
+# Flexibility: You can generate URLs for specific objects as needed.
+# Control: You can set expiration times for these URLs.
+# Security: Limits public access to specific objects and timeframes.
+
+# Steps Involved:
+# Create the S3 Bucket: Use CloudFormation to create the S3 bucket.
+# Upload Objects: Upload your files (file1 and file2) to the S3 bucket.
+# Generate Pre-Signed URLs: Use the AWS SDK or CLI to generate pre-signed URLs for the specific objects you want to share publicly.
+
+
+
+# Example using Python Boto3:
+# import boto3
+
+# def generate_presigned_url(bucket_name, object_key, expiration=3600):
+#     """Generates a pre-signed URL for an object in an S3 bucket"""
+#     s3 = boto3.client('s3')
+#     url = s3.generate_presigned_url('get_object',
+#                                    Params={'Bucket': bucket_name, 'Key': object_key},
+#                                    ExpiresIn=expiration)
+#     return url
+
+# # Example usage:
+# bucket_name = 'your_bucket_name'
+# object_key_1 = 'file1'
+# object_key_2 = 'file2'
+
+# url_file1 = generate_presigned_url(bucket_name, object_key_1)
+# url_file2 = generate_presigned_url(bucket_name, object_key_2)
+
+# print(url_file1)
+# print(url_file2)
+
+
+
+
+# Additional Considerations:
+# Security: While pre-signed URLs offer more control, ensure proper handling of these URLs to prevent unauthorized access.
+# Large-Scale Use Cases: If you need to generate many pre-signed URLs or have frequent access patterns, consider using a CDN or other distribution mechanisms.
+# Expiration: Set appropriate expiration times for the URLs based on your requirements.
+# By following these steps, you can effectively grant public read access to specific objects in your S3 bucket while maintaining control over access and security.
+
+
+
+# Explanation:
+
+# Import the boto3 library: This library provides an interface to interact with AWS services, including S3.
+# Define the generate_presigned_url function: This function takes the bucket name, object key, and optional expiration time as input and returns a pre-signed URL.
+# Set bucket name and object keys: Replace your_bucket_name with invoices3bucket and provide the actual object keys (file1 and file2).
+# Generate pre-signed URLs: Call the generate_presigned_url function for each object to get the corresponding pre-signed URL.
+# Important Considerations:
+
+# Replace the placeholder object keys (file1 and file2) with the actual names of your objects.
+# Adjust the expiration time (currently set to 3600 seconds) based on your requirements.
+# Handle the generated URLs securely to prevent unauthorized access.
+# By following these steps, you can generate pre-signed URLs for specific objects in your "invoices3bucket" and share them as needed.
+
+
+
