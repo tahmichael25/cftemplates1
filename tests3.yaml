@@ -1,0 +1,9 @@
+AWSTemplateFormatVersion: 
+Description: "One S3 bucket to store invoice pdf files"
+Resources: {
+  "Type" : "AWS::S3::Bucket",
+  "Properties" : {
+     BucketName: "s3invoicebucket1"
+  }
+}
+     

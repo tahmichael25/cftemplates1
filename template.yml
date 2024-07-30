@@ -1,0 +1,54 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Master stack: PathToMasterStackFile'
+
+Parameters:
+  BranchName:
+    Default: BranchName
+    Description: Choose which Branch do you want to use
+    Type: String
+  Customer:
+    Description: is used as Customer tag value for all resources
+    Type: String
+    Default: Customer
+    AllowedPattern: ^[A-Za-z0-9]*$
+    ConstraintDescription: must contain only alphanumeric characters and numbers.
+    MaxLength: 20
+    MinLength: 1
+  CustomerProject:
+    Description: is used as Customer project tag value for all resources
+    Type: String
+    Default: CustomerProject
+    AllowedPattern: ^[A-Za-z0-9]*$
+    ConstraintDescription: must contain only alphanumeric characters and numbers.
+    MaxLength: 20
+    MinLength: 1
+  Environment:
+    Description: Environment to deploy. Use staging for limited resources and no alerts.
+    Type: String
+    Default: Staging
+    AllowedValues:
+    - Staging
+    - Production
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: Tagging and billing
+      Parameters:
+      - Customer
+      - CustomerProject
+    - Label:
+        default: Choose Branch and Environment
+      Parameters:
+      - Environment
+      - BranchName
+
+Mappings:
+
+Resources:
+  
+
+Outputs:
+  PathToMasterStackFile
