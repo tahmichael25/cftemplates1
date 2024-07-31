@@ -1,12 +1,113 @@
+# AWSTemplateFormatVersion: "2010-09-09"
+# Description: Creates two EC2 instances and an S3 bucket
+# Parameters:
+#   InstanceTypeParameter:
+#     Description: Enter t2.micro, m1.small, or m1.large. Default is t2.micro.
+#     Type: String
+#     Default: t2.micro
+#     AllowedValues:
+#       - t2.micro
+#       - m1.small
+#       - m1.large
+
+# Resources:
+#   WebServer:                           # Webserver with 8gb EBS
+#     Type: AWS::EC2::Instance
+#     Properties:
+#       ImageId: "ami-074be47313f84fa38"  # Replace with the correct AMI for your region
+#       InstanceType: !Ref InstanceTypeParameter
+#       KeyName: OregonKP  # Replace with your key pair name
+#       SecurityGroups:
+#         - Ref: MySecurityGroup
+#       BlockDeviceMappings:
+#         -
+#           DeviceName: /dev/xvda
+#           Ebs:
+#             VolumeType: gp2
+#             DeleteOnTermination: true
+#             VolumeSize: 8
+#           # Ebs:
+#           #   VolumeType: "io1"
+#           #   Iops: "200"
+#           #   DeleteOnTermination: "true"
+#           #   VolumeSize: '8'
+#       Tags:
+#         - Key: Name
+#           Value: WebServer
+
+#   AppServer:                                # Appserver with 10gb EBS
+#     Type: AWS::EC2::Instance
+#     Properties:
+#       ImageId: "ami-074be47313f84fa38"  # Replace with the correct AMI for your region
+#       InstanceType: !Ref InstanceTypeParameter
+#       KeyName: OregonKP  # Replace with your key pair name
+#       SecurityGroups:
+#         - Ref: MySecurityGroup
+#       BlockDeviceMappings:
+#         -
+#           DeviceName: /dev/xvda
+#           Ebs:
+#             VolumeType: gp2
+#             DeleteOnTermination: true
+#             VolumeSize: 10
+#           # Ebs:
+#           #   VolumeType: "io1"
+#           #   Iops: "200"
+#           #   DeleteOnTermination: "true"
+#           #   VolumeSize: '10'
+#       Tags:
+#         - Key: Name
+#           Value: AppServer
+
+#   MySecurityGroup:
+#     Type: AWS::EC2::SecurityGroup
+#     Properties:
+#       GroupDescription: Allow SSH and HTTP traffic
+#       SecurityGroupIngress:
+#         - IpProtocol: tcp
+#           FromPort: 22
+#           ToPort: 22
+#           CidrIp: 0.0.0.0/0
+#         - IpProtocol: tcp
+#           FromPort: 80
+#           ToPort: 80
+#           CidrIp: 0.0.0.0/0
+
+#   MyS3Bucket:                   # One S3 bucket to store invoice pdf files
+#     Type: AWS::S3::Bucket
+#     Properties:
+#       BucketName: m5-s3-bucket
+
+
+
+
+
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Creates two EC2 instances and an S3 bucket
+Parameters:
+  ProdInstanceTypeParameter:
+    Description: Enter t2.micro, m1.small, or m1.large. Default is t2.micro.
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - m1.small
+      - m1.large
+  DevInstanceTypeParameter:
+    Description: Enter t2.micro, m1.small, or m1.large. Default is t2.micro.
+    Type: String
+    Default: m1.small
+    AllowedValues:
+      - t2.micro
+      - m1.small
+      - m1.large
 
 Resources:
   WebServer:                           # Webserver with 8gb EBS
     Type: AWS::EC2::Instance
     Properties:
       ImageId: "ami-074be47313f84fa38"  # Replace with the correct AMI for your region
-      InstanceType: t2.micro
+      InstanceType: !Ref ProdInstanceTypeParameter
       KeyName: OregonKP  # Replace with your key pair name
       SecurityGroups:
         - Ref: MySecurityGroup
@@ -30,7 +131,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       ImageId: "ami-074be47313f84fa38"  # Replace with the correct AMI for your region
-      InstanceType: t2.micro
+      InstanceType: !Ref DevInstanceTypeParameter
       KeyName: OregonKP  # Replace with your key pair name
       SecurityGroups:
         - Ref: MySecurityGroup
