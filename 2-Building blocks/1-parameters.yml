@@ -25,7 +25,7 @@ Parameters:
   AMIID:
     Description: The EC2 AMI id
     Type: String  
-    Default: ami-0022f774911c1d690
+    Default: ami-074be47313f84fa38
     ConstraintDescription: Must be a valid AMI based on the region
 
   VolumeSize:
@@ -47,7 +47,10 @@ Parameters:
     AllowedValues: 
       - 80
       - 443
-      - 22    
+      - 22 
+      - 3306
+      - 5432
+      - 27017   
 
   SSHLocation:
     Description: The IP address range that can be used to SSH to the EC2 instances
