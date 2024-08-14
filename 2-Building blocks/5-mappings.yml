@@ -48,8 +48,8 @@ Mappings:
     us-east-1:
       HVM64: ami-0ff8a91507f77f867
       HVMG2: ami-0a584ac55a7631c0c  
-    us-west-1:
-      HVM64: ami-0bdb828fd58c52235
+    us-west-2:
+      HVM64: ami-074be47313f84fa38
       HVMG2: ami-066ee5fd4a9ef77f1
     eu-west-1:
       HVM64: ami-047bb4163c506cd98
@@ -67,7 +67,7 @@ Mappings:
       keyName: dev-key
     testing:
       instanceType: t2.micro
-      keyName: tst-key
+      keyName: OregonKP
     acceptance:
       instanceType: t2.small
       keyName: acc-key
