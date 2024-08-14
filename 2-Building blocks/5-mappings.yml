@@ -48,8 +48,8 @@ Mappings:
     us-east-1:
       HVM64: ami-0ff8a91507f77f867
       HVMG2: ami-0a584ac55a7631c0c  
-    us-west-2:
-      HVM64: ami-074be47313f84fa38
+    us-west-1:
+      HVM64: ami-0bdb828fd58c52235
       HVMG2: ami-066ee5fd4a9ef77f1
     eu-west-1:
       HVM64: ami-047bb4163c506cd98
@@ -64,16 +64,16 @@ Mappings:
   EC2TypeBasedOnEnv:
     development: 
       instanceType: t2.nano
-      keyName: dev-key
+    #  keyName: dev-key
     testing:
       instanceType: t2.micro
-      keyName: OregonKP
+    #  keyName: tst-key
     acceptance:
       instanceType: t2.small
-      keyName: acc-key
+    #  keyName: acc-key
     production:
       instanceType: t2.medium
-      keyName: prod-key
+   #   keyName: prod-key
 
 Resources:
   EC2Instance:
