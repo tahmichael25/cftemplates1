@@ -1,0 +1,198 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template to create an EC2 instance with Ansible installed'
+Parameters:
+  InstanceType:
+    Description: WebServer EC2 instance type
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.nano
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+    ConstraintDescription: must be a valid EC2 instance type.
+    
+  AMIID:
+    Description: The EC2 AMI ID
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+    
+  VolumeSize:
+    Description: EBS Volume size
+    Type: Number
+    Default: 8
+    MinValue: 8
+    MaxValue: 100
+    ConstraintDescription: must be a number between 8 to 100 GB.
+
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+    
+  SecurityGroupPorts:
+    Description: Ports allowed in Security Group
+    Type: Number
+    AllowedValues: 
+      - 22
+      - 80
+      - 443
+    
+  SSHLocation:
+    Description: The IP address range for SSH access
+    Type: String
+    Default: 0.0.0.0/0
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+
+Mappings:
+  RegionMap:
+    us-east-1:
+      HVM64: ami-0ff8a91507f77f867
+    us-west-1:
+      HVM64: ami-0bdb828fd58c52235
+
+Resources:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref AMIID
+      InstanceType: !Ref InstanceType
+      SecurityGroupIds:
+        - !Ref InstanceSecurityGroup
+      KeyName: !Ref KeyName
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeType: gp2
+            DeleteOnTermination: true
+            VolumeSize: !Ref VolumeSize
+      UserData: 
+        Fn::Base64: 
+          !Sub |
+            #!/bin/bash
+            sudo yum update -y
+            sudo amazon-linux-extras install ansible2 -y
+            echo "Ansible installed successfully" > /var/log/ansible_install.log
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH and HTTP access
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref SSHLocation
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+
+Outputs:
+  InstanceId:
+    Description: The Instance ID
+    Value: !Ref EC2Instance
+    
+  InstancePublicIP:
+    Description: The public IP address of the EC2 instance
+    Value: !GetAtt EC2Instance.PublicIp
+    
+  SecurityGroupId:
+    Description: The Security Group ID
+    Value: !GetAtt InstanceSecurityGroup.GroupId
+
+
+
+
+
+##############################################################################################################################
+# Above is a condensed AWS CloudFormation stack that combines the building blocks of CF  templates and includes a UserData script to install Ansible on an EC2 instance:
+
+# Key Points:
+# UserData Script: Installs Ansible on the EC2 instance.
+# Parameters: Cover the instance type, AMI ID, SSH key, and other necessary settings.
+# Mappings: Include a region-based mapping for AMIs.
+# Outputs: Provide essential information like instance ID and public IP.
+
+
+# An Ansible worker node, also known as a managed node, is a target system where Ansible runs tasks. In the context of an EC2 instance configured as an Ansible worker node, this node would typically perform tasks such as:
+
+# Configuration Management: Ensure that the managed systems maintain a desired configuration state, such as installing software, managing services, and applying security policies.
+
+# Software Deployment: Automate the deployment of applications and services, including updates and rollbacks.
+
+# Provisioning: Set up infrastructure components like databases, load balancers, or storage, or configure networking on the cloud.
+
+# Orchestration: Coordinate multiple automated tasks across different environments, such as rolling updates, scaling operations, or backups.
+
+# Monitoring and Compliance: Enforce security policies, run compliance checks, and collect monitoring data to ensure systems meet defined standards.
+
+# Task Automation: Execute routine administrative tasks like user management, patching, and backups.
+
+# An Ansible worker node doesn't initiate tasks on its own. Instead, it waits for instructions from an Ansible controller (master) node, which pushes configurations, scripts, and other commands to the worker node over SSH or other communication protocols.
+
+
+
+# With just one worker node, you can:
+
+# System Configuration: Install packages, manage services, configure files, and manage users.
+# Application Deployment: Deploy applications, configure databases, and manage web servers.
+# File Management: Transfer files, synchronize directories, and manage permissions.
+# Security Tasks: Apply security patches, configure firewalls, and manage user privileges.
+# Examples of Tasks
+# Here are some examples of tasks you can run on your worker node:
+
+# Installing Packages
+# - name: Install nginx
+#   hosts: worker_node
+#   become: yes
+#   tasks:
+#     - name: Install nginx package
+#       apt:
+#         name: nginx
+#         state: present
+
+# Managing Services
+# - name: Ensure nginx is running
+#   hosts: worker_node
+#   become: yes
+#   tasks:
+#     - name: Start nginx service
+#       service:
+#         name: nginx
+#         state: started
+#         enabled: true
+
+
+# File Transfer
+# - name: Copy a file to the server
+#   hosts: worker_node
+#   tasks:
+#     - name: Copy a file
+#       copy:
+#         src: /local/path/to/file.txt
+#         dest: /remote/path/to/file.txt
+
+
+
+# User Management
+# - name: Create a new user
+#   hosts: worker_node
+#   become: yes
+#   tasks:
+#     - name: Add a new user
+#       user:
+#         name: newuser
+#         state: present
+#         groups: sudo
+
+
+# Scaling Up
+# If your workload grows, you can add more worker nodes. Multiple nodes allow for parallel execution, increasing efficiency and handling larger tasks across different systems.
+
