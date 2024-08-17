@@ -1,94 +1,87 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: >
-  CloudFormation template to create an Ansible Master and Worker node on EC2 instances.
-  The Master node will configure and deploy a web page to the Worker node using Ansible.
+Description: 'CloudFormation template to create EC2 instances for Ansible Master and Worker Node'
+Parameters:
+  InstanceType:
+    Description: WebServer EC2 instance type
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /jjtech/ec2/instancetype     
+    ConstraintDescription: must be a valid EC2 instance type.
+
+  AMIID:
+    Description: The EC2 AMI id
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+    ConstraintDescription: Must be a valid AMI based on the region
+
+  VolumeSize:
+    Description: EBS Volume size
+    Type: Number
+    Default: 8
+    MinValue: 8
+    MaxValue: 100
+    ConstraintDescription: must be a number between 8 to 100 Gb
+
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.  
+  
+  SSHLocation:
+    Description: The IP address range that can be used to SSH to the EC2 instances
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 0.0.0.0/0
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
 
 Resources:
-
-  AnsibleMasterSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties: 
-      GroupDescription: Allow SSH, HTTP access to Ansible Master
-      VpcId: !Ref VPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 0.0.0.0/0
-
-  WorkerNodeSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties: 
-      GroupDescription: Allow SSH, HTTP access to Worker Node
-      VpcId: !Ref VPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 0.0.0.0/0
-
   AnsibleMasterInstance:
     Type: AWS::EC2::Instance
     Properties:
-      InstanceType: t2.micro
-      SecurityGroupIds: 
-        - !Ref AnsibleMasterSecurityGroup
-      KeyName: my-key-pair
-      ImageId: ami-0c55b159cbfafe1f0 # Amazon Linux 2
-      IamInstanceProfile: !Ref AnsibleInstanceProfile
-      UserData: 
+      ImageId: !Ref AMIID
+      InstanceType: !Ref InstanceType
+      SecurityGroups:
+      - Ref: InstanceSecurityGroup
+      KeyName: !Ref KeyName
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeType: gp2             
+            DeleteOnTermination: true
+            VolumeSize: !Ref VolumeSize
+      UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
           yum update -y
-          yum install -y ansible git httpd
-
-          echo "[webserver]" > /etc/ansible/hosts
-          echo "worker-node ansible_host=${WorkerNodeInstance.PublicIp} ansible_user=ec2-user ansible_ssh_private_key_file=/home/ec2-user/.ssh/id_rsa" >> /etc/ansible/hosts
-
-          ssh-keygen -t rsa -N "" -f /home/ec2-user/.ssh/id_rsa
-          sshpass -p "worker-password" ssh-copy-id -i /home/ec2-user/.ssh/id_rsa.pub ec2-user@${WorkerNodeInstance.PublicIp}
-
-          cat <<EOL > /home/ec2-user/deploy_web.yml
-          ---
-          - hosts: webserver
-            become: yes
+          amazon-linux-extras install ansible2 -y
+          yum install git -y
+          yum install httpd -y  # Install Apache
+          systemctl start httpd  # Start Apache
+          systemctl enable httpd  # Enable Apache to start on boot
+          ansible-galaxy collection install amazon.aws
+          ansible-galaxy collection install community.general
+          mkdir -p /etc/ansible/playbooks
+          cd /etc/ansible/playbooks
+          echo "
+          - hosts: localhost
             tasks:
-              - name: Install Apache
-                yum:
-                  name: httpd
-                  state: present
-
-              - name: Start and enable Apache
-                service:
-                  name: httpd
-                  state: started
-                  enabled: yes
-
-              - name: Deploy the web content
+              - name: Deploy HTML file
                 copy:
+                  dest: /var/www/html/index.html
                   content: |
                     <!DOCTYPE html>
-                    <html lang="en">
+                    <html lang='en'>
                     <head>
-                        <meta charset="UTF-8">
-                        <title>Hello Group 3 JJTech Engineers</title>
+                        <meta charset='UTF-8'>
+                        <title>Hello EL ROI Engineers</title>
                         <style>
                             body {
                                 background-color: #00bfff;
                                 color: #008000;
                                 font-family: Arial, sans-serif;
                             }
-                            .lion-image {
-                                width: 200px;
-                                height: auto;
+                            .fade-in {
                                 animation: fadeIn 2s ease-in-out;
                             }
                             @keyframes fadeIn {
@@ -97,95 +90,66 @@ Resources:
                             }
                         </style>
                         <script>
-                            alert('Hello group 3 jjtech engineers. We shall have good jobs soon');
+                            alert('Hello EL ROI engineers. We shall have good contracts soon');
                         </script>
                     </head>
                     <body>
-                        <h1>Hello Group 3 JJTech Engineers</h1>
-                        <p>We shall have good jobs soon!</p>
-                        <img class="lion-image" src="lion.jpg" alt="Lion">
+                        <h1>Hello EL ROI Engineers</h1>
+                        <p>We shall have good contracts soon!</p>
                     </body>
                     </html>
-                  dest: /var/www/html/index.html
-          EOL
+          " > deploy_html.yml
+          ansible-playbook deploy_html.yml
 
-          ansible-playbook /home/ec2-user/deploy_web.yml
-
-  WorkerNodeInstance:
+  AnsibleWorkerInstance:
     Type: AWS::EC2::Instance
     Properties:
-      InstanceType: t2.micro
-      SecurityGroupIds: 
-        - !Ref WorkerNodeSecurityGroup
-      KeyName: my-key-pair
-      ImageId: ami-0c55b159cbfafe1f0 # Amazon Linux 2
-      UserData: 
+      ImageId: !Ref AMIID
+      InstanceType: !Ref InstanceType
+      SecurityGroups:
+      - Ref: InstanceSecurityGroup
+      KeyName: !Ref KeyName
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeType: gp2             
+            DeleteOnTermination: true
+            VolumeSize: !Ref VolumeSize
+      UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
           yum update -y
-          yum install -y httpd
-          systemctl start httpd
-          systemctl enable httpd
+          amazon-linux-extras install ansible2 -y
 
-  AnsibleInstanceProfile:
-    Type: AWS::IAM::InstanceProfile
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
     Properties:
-      Roles:
-        - !Ref AnsibleRole
-
-  AnsibleRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: ec2.amazonaws.com
-            Action: sts:AssumeRole
-      Policies:
-        - PolicyName: AnsiblePolicy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - ec2:DescribeInstances
-                  - ec2:DescribeRegions
-                Resource: '*'
+      GroupDescription: Enable SSH access via port 22
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: !Ref SSHLocation
 
 Outputs:
-  AnsibleMasterPublicIP:
-    Description: Public IP of the Ansible Master node
-    Value: !GetAtt AnsibleMasterInstance.PublicIp
-
-  WorkerNodePublicIP:
-    Description: Public IP of the Worker node
-    Value: !GetAtt WorkerNodeInstance.PublicIp
-
-
-
-
-###############################################################################################################
-# The template will create two EC2 instances: one as the Ansible Master and another as the Worker node. 
-# The template will also set up the necessary security groups, 
-# IAM roles, and user data to install and configure Ansible on the Master node, and Apache on the Worker node.
-
-# Explanation:
-# Security Groups: Two security groups are defined to allow SSH (port 22) and HTTP (port 80) access to the Ansible Master and Worker nodes.
-
-# EC2 Instances:
-
-# AnsibleMasterInstance: The User Data script installs Ansible, sets up an inventory with the Worker node, generates an SSH key, and runs an Ansible playbook to deploy the HTML content.
-# WorkerNodeInstance: The User Data script installs Apache and starts the HTTP service.
-# IAM Role and Instance Profile: An IAM role with a basic policy to describe EC2 instances is attached to the Master node.
-
-# Outputs: The public IPs of both the Master and Worker nodes are provided as outputs.
-
-# Deploying the CloudFormation Stack
-# To deploy this CloudFormation template:
-
-# Save the above YAML as ansible-deployment.yml.
-# Go to the AWS CloudFormation console.
-# Create a new stack, upload the template, and follow the prompts.
-# Once the stack is deployed, you can access the Worker node’s public IP in a browser to see the web page.
+  MasterInstanceDetails:
+    Description: "Ansible Master Instance details"
+    Value: !Ref AnsibleMasterInstance
+  WorkerInstanceDetails:
+    Description: "Ansible Worker Instance details"
+    Value: !Ref AnsibleWorkerInstance
+  MasterPublicDNS:
+    Description: Public DNSName of the Ansible Master instance
+    Value: !GetAtt 
+      - AnsibleMasterInstance
+      - PublicDnsName       
+  WorkerPublicDNS:
+    Description: Public DNSName of the Ansible Worker instance
+    Value: !GetAtt 
+      - AnsibleWorkerInstance
+      - PublicDnsName       
+  SecurityGroupId:
+    Description: Security Group ID of the created instances
+    Value: !GetAtt 
+      - InstanceSecurityGroup
+      - GroupId
