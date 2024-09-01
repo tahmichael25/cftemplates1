@@ -1,7 +1,7 @@
-# cloudformation-introduction
+# Cloudformation-introduction
 Repo to explain the CloudFormation topics &amp; hands-on scenarios
 
-# This is a simple YAML file for a personal website
+## This is a simple YAML file for a personal website
 name: John Doe
 age: 35
 occupation: Software Engineer
