@@ -1,0 +1,15 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: IAM role for CloudFormation service to assume with deletion policy to retain.
+Resources:
+  CFServiceRole:
+    Type: AWS::IAM::Role
+    DeletionPolicy: Retain
+    Properties:
+      RoleName: IAMRoleForCFService
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudformation.amazonaws.com
+            Action: sts:AssumeRole

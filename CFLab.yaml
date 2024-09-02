@@ -1,0 +1,91 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: |
+  This template creates an instance with a security group and an IAM role
+
+Parameters:
+  InstanceType:
+    Type: String
+    Description: Enter the instance type
+    Default: "t2.micro"
+    AllowedValues: 
+      - t2.micro
+      - t2.small
+      - t2.medium
+  KeypairName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Enter the key pair name
+    Default: "wep"
+
+  AmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Description: Enter the SSM parameter name which contains the AMI ID
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-x86_64
+
+Resources:
+
+  ec2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CF-Lab-Role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+      Tags:
+        - Key: Name
+          Value: CF-Lab-Role
+  instanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: CF-Lab-Instance-Profile
+      Roles:
+        - !Ref ec2Role
+
+  myInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref AmiId
+      KeyName: !Ref KeypairName
+      IamInstanceProfile: !Ref instanceProfile
+      SecurityGroups:
+        - !Ref sG
+      Tags:
+        - Key: Name
+          Value: CF-Lab-Ec2
+  sG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH access via port 22
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: '0.0.0.0/0'
+      Tags:
+        - Key: Name
+          Value: CF-Lab-SG
+  ssmPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: ssmPolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - ssm:*
+            Resource: '*'
+      Roles:
+        - !Ref ec2Role
+
+Outputs:
+  PublicIp:
+    Description: The Public IP
+    Value: !GetAtt myInstance.PublicIp
